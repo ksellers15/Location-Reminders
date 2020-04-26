@@ -1,42 +1,42 @@
 {
   "project_info": {
-    "project_number": "828921963966",
-    "firebase_url": "https://locations-reminder-b8b11.firebaseio.com",
-    "project_id": "locations-reminder-b8b11",
-    "storage_bucket": "locations-reminder-b8b11.appspot.com"
+    "project_number": "611625020820",
+    "firebase_url": "https://location-reminder-project.firebaseio.com",
+    "project_id": "location-reminder-project",
+    "storage_bucket": "location-reminder-project.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:828921963966:android:deb6cd8aaf208dc6f805ef",
+        "mobilesdk_app_id": "1:611625020820:android:9540070bd5cb5f1abeb381",
         "android_client_info": {
-          "package_name": "com.kasonsellers.locationsreminder"
+          "package_name": "com.udacity.project4"
         }
       },
       "oauth_client": [
         {
-          "client_id": "828921963966-9fepqar41cq23p47po6ipi60mp94i8mf.apps.googleusercontent.com",
+          "client_id": "611625020820-t6rlsrepmr71geojdset4t33m32qa4qb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.kasonsellers.locationsreminder",
+            "package_name": "com.udacity.project4",
             "certificate_hash": "fdf14abf5165f84ad1fb6fb55c9fa8ca23eb8e80"
           }
         },
         {
-          "client_id": "828921963966-5726tbepdtfonm0lkhfq0dbsco4e9692.apps.googleusercontent.com",
+          "client_id": "611625020820-hplj6hvdeinaalqataphbuq7b53hj07d.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCG5Ub6lOxkyzkGTyfuhrps6xLyGTPsqTI"
+          "current_key": "AIzaSyCLiaVMhCB2TmD1jLtcSB2qGjLHdGvvbaA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "828921963966-5726tbepdtfonm0lkhfq0dbsco4e9692.apps.googleusercontent.com",
+              "client_id": "611625020820-hplj6hvdeinaalqataphbuq7b53hj07d.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
