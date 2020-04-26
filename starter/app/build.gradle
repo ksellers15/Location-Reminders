@@ -122,6 +122,5 @@ dependencies {
 
     // Firebase Dependencies
     //Authentication
-    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
-    implementation "com.google.android.gms:play-services-auth:$firebaseWithGoogleAuthVersion"
+    implementation "com.firebaseui:firebase-ui-auth:$firebaseUIAuthVersion"
 }
