@@ -5,6 +5,10 @@ import android.content.Intent
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_authentication.*
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import com.firebase.ui.auth.AuthUI
@@ -35,12 +39,7 @@ class AuthenticationActivity : AppCompatActivity() {
             return
         }
 
-        startActivityForResult(
-            AuthUI.getInstance()
-                .createSignInIntentBuilder()
-                .setAvailableProviders(providers)
-                .build(),
-            RC_SIGN_IN)
+        createSigninActivity()
 
 //          COMPLETED: If the user was authenticated, send him to RemindersActivity
 
@@ -48,6 +47,28 @@ class AuthenticationActivity : AppCompatActivity() {
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
 
     }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.signin_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.signin -> {
+                startActivityForResult(
+                    AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                    RC_SIGN_IN)
+                return true
+            } else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -67,6 +88,15 @@ class AuthenticationActivity : AppCompatActivity() {
                 // ...
             }
         }
+    }
+
+    private fun createSigninActivity() {
+        startActivityForResult(
+            AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .build(),
+            RC_SIGN_IN)
     }
 
 
