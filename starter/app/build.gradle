@@ -120,4 +120,8 @@ dependencies {
     implementation "com.google.android.gms:play-services-maps:$playServicesVersion"
 
 
+    // Firebase Dependencies
+    //Authentication
+    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+    implementation "com.google.android.gms:play-services-auth:$firebaseWithGoogleAuthVersion"
 }
