@@ -2,43 +2,39 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.content.res.Resources
+import android.location.LocationManager
 import android.os.Bundle
-import android.util.Log
 import android.view.*
-import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory.newLatLng
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
-import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import kotlinx.android.synthetic.main.fragment_select_location.*
-import kotlinx.android.synthetic.main.fragment_select_location.view.*
-import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.inject
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
 
+    val PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 4608
+
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
+
     lateinit var map: GoogleMap
+    lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    var locationPermissionGranted: Boolean = false
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -52,11 +48,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         val mapFrag = childFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
         mapFrag.getMapAsync(this)
 
-//        TODO: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
+//        COMPLETED: add the map setup implementation
+//        COMPLETED: zoom to the user location after taking his permission
 //        TODO: add style to the map
 //        TODO: put a marker to location that the user selected
 
@@ -95,13 +92,82 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
         else -> super.onOptionsItemSelected(item)
     }
 
+    private fun getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if(checkSelfPermission(this.requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationPermissionGranted = true
+            updateMapSettings()
+        } else {
+            requestPermissions(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_ACCESS_FINE_LOCATION)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        locationPermissionGranted = false
+        if(requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION) {
+            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                locationPermissionGranted = true
+            }
+        }
+
+        updateMapSettings()
+    }
+
+
+   private fun updateMapSettings() {
+       if (locationPermissionGranted) {
+           map.isMyLocationEnabled = true
+           map.uiSettings.apply {
+               isZoomControlsEnabled = true
+               isZoomGesturesEnabled= true
+               isMyLocationButtonEnabled = true
+               isMapToolbarEnabled = true
+           }
+
+
+           // Fetch to and move camera to user's location. Also zoom in
+           fusedLocationClient.lastLocation.addOnCompleteListener() { task ->
+               if(task.isSuccessful) {
+                   val loc = task.result!!
+                   map.moveCamera(CameraUpdateFactory.newCameraPosition(
+                       CameraPosition.fromLatLngZoom(LatLng(loc.latitude, loc.longitude), map.maxZoomLevel/1.5f)
+                   ))
+               }
+           }
+
+           map.setOnMapLongClickListener {
+               latLng ->
+               map.addMarker(
+                   MarkerOptions()
+                   .position(latLng)
+                   .title(getString(R.string.dropped_pin))
+               )
+               // Move camera to user's location
+               map.moveCamera(newLatLng(latLng))
+           }
+       } else {
+           map.isMyLocationEnabled = false
+           map.uiSettings.apply {
+               isZoomControlsEnabled = false
+               isZoomGesturesEnabled= false
+               isMyLocationButtonEnabled = false
+               isMapToolbarEnabled = true
+           }
+           getLocationPermission()
+       }
+   }
+
+
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap!!
 
-        // Add a marker in Sydney, Australia, and move the camera.
-        val sydney = LatLng((-34).toDouble(), 151.0)
-        map.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        getLocationPermission()
     }
 
 
