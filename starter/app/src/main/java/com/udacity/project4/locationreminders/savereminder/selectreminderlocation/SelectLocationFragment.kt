@@ -15,7 +15,9 @@ import com.google.android.gms.maps.CameraUpdateFactory.newLatLng
 import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
+import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
@@ -63,7 +65,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
+        val poi = PointOfInterest(selectedLocation.position, selectedLocation.id, selectedLocation.title)
+        _viewModel.setSelectedLocation(poi)
+        _viewModel.navigationCommand.value = NavigationCommand.Back
+
+        //        COMPLETED: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
     }
