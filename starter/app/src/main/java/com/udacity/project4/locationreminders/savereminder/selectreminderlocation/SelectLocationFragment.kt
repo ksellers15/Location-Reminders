@@ -12,9 +12,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.CameraUpdateFactory.newLatLng
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
@@ -22,7 +20,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 
-class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
+class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener {
 
     val PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 4608
 
@@ -32,6 +30,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
 
     lateinit var map: GoogleMap
     lateinit var fusedLocationClient: FusedLocationProviderClient
+    lateinit var selectedLocation: Marker
 
     var locationPermissionGranted: Boolean = false
 
@@ -55,11 +54,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
 //        COMPLETED: add the map setup implementation
 //        COMPLETED: zoom to the user location after taking his permission
 //        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
+//        COMPLETED: put a marker to location that the user selected
 
 
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+//        COMPLETED: call this function after the user confirms on the selected location
 
         return binding.root
     }
@@ -76,17 +74,25 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // TODO: Change the map type based on the user's selection.
+        // COMPLETED: Change the map type based on the user's selection.
+        R.id.action_save_location -> {
+            onLocationSelected()
+            true
+        }
         R.id.normal_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
         }
         R.id.hybrid_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
             true
         }
         R.id.satellite_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_SATELLITE
             true
         }
         R.id.terrain_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_TERRAIN
             true
         }
         else -> super.onOptionsItemSelected(item)
@@ -138,19 +144,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
                    map.moveCamera(CameraUpdateFactory.newCameraPosition(
                        CameraPosition.fromLatLngZoom(LatLng(loc.latitude, loc.longitude), map.maxZoomLevel/1.5f)
                    ))
+                   selectedLocation = map.addMarker(MarkerOptions()
+                       .position(LatLng(loc.latitude, loc.longitude))
+                       .title(getString(R.string.your_location))
+                       .snippet("${loc.latitude}, ${loc.longitude}"))
+
+                   selectedLocation.showInfoWindow()
                }
            }
 
-           map.setOnMapLongClickListener {
-               latLng ->
-               map.addMarker(
-                   MarkerOptions()
-                   .position(latLng)
-                   .title(getString(R.string.dropped_pin))
-               )
-               // Move camera to user's location
-               map.moveCamera(newLatLng(latLng))
-           }
+
+           map.setOnPoiClickListener(this)
+           map.setOnMapLongClickListener(this)
        } else {
            map.isMyLocationEnabled = false
            map.uiSettings.apply {
@@ -168,6 +173,26 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback  {
         map = googleMap!!
 
         getLocationPermission()
+    }
+
+    override fun onPoiClick(pointOfInterest: PointOfInterest?) {
+        selectedLocation.remove()
+        selectedLocation = map.addMarker(MarkerOptions()
+            .position(pointOfInterest!!.latLng)
+            .title(pointOfInterest.name)
+            .snippet("${pointOfInterest.latLng.latitude}, ${pointOfInterest.latLng.longitude}"))
+
+        selectedLocation.showInfoWindow()
+    }
+
+    override fun onMapLongClick(latLng: LatLng?) {
+        selectedLocation.remove()
+        selectedLocation = map.addMarker(MarkerOptions()
+            .position(latLng!!)
+            .title(getString(R.string.dropped_pin))
+            .snippet("${latLng.latitude}, ${latLng.longitude}"))
+
+        selectedLocation.showInfoWindow()
     }
 
 
