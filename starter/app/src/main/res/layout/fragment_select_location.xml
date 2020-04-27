@@ -14,13 +14,27 @@
         android:id="@+id/mapContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <!--TODO: Add the map fragment for the user to select the location-->
+        <!--COMPLETED: Add the map fragment for the user to select the location-->
 
         <fragment
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/mapFragment"
             android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+        <TextView
+            android:id="@+id/selectALocation"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginLeft="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:background="#A4FFFFFF"
+            android:padding="@dimen/padding_small"
+            android:text="@string/select_poi"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

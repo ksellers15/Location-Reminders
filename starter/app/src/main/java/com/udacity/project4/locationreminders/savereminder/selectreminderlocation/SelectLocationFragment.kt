@@ -3,26 +3,24 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.CameraUpdateFactory.newLatLng
 import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
-import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 
-class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener {
+class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMapClickListener/*, GoogleMap.OnMapLongClickListener*/ {
 
     val PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 4608
 
@@ -32,7 +30,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
 
     lateinit var map: GoogleMap
     lateinit var fusedLocationClient: FusedLocationProviderClient
-    lateinit var selectedLocation: Marker
+    var selectedLocation: Marker? = null
 
     var locationPermissionGranted: Boolean = false
 
@@ -65,7 +63,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
     }
 
     private fun onLocationSelected() {
-        val poi = PointOfInterest(selectedLocation.position, selectedLocation.id, selectedLocation.title)
+        if(selectedLocation == null) {
+            Toast.makeText(requireContext(), "You have not selected a point of interest.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val poi = PointOfInterest(selectedLocation!!.position, selectedLocation!!.id, selectedLocation!!.title)
         _viewModel.setSelectedLocation(poi)
         _viewModel.navigationCommand.value = NavigationCommand.Back
 
@@ -115,7 +118,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
             locationPermissionGranted = true
             updateMapSettings()
         } else {
-            requestPermissions(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_ACCESS_FINE_LOCATION)
         }
     }
@@ -141,27 +144,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
                isMyLocationButtonEnabled = true
                isMapToolbarEnabled = true
            }
-
-
-           // Fetch to and move camera to user's location. Also zoom in
-           fusedLocationClient.lastLocation.addOnCompleteListener() { task ->
-               if(task.isSuccessful) {
-                   val loc = task.result!!
-                   map.moveCamera(CameraUpdateFactory.newCameraPosition(
-                       CameraPosition.fromLatLngZoom(LatLng(loc.latitude, loc.longitude), map.maxZoomLevel/1.5f)
-                   ))
-                   selectedLocation = map.addMarker(MarkerOptions()
-                       .position(LatLng(loc.latitude, loc.longitude))
-                       .title(getString(R.string.your_location))
-                       .snippet("${loc.latitude}, ${loc.longitude}"))
-
-                   selectedLocation.showInfoWindow()
-               }
-           }
-
+           
+           // If there is already a place selected. Reload that place,
+           // if not, show the user's current location
+           if(!setInitialMarker()){
+               moveCameraToUserPosition()
+            }
 
            map.setOnPoiClickListener(this)
-           map.setOnMapLongClickListener(this)
+//           map.setOnMapLongClickListener(this)
        } else {
            map.isMyLocationEnabled = false
            map.uiSettings.apply {
@@ -174,6 +165,41 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
        }
    }
 
+    private fun moveCameraToUserPosition() {
+        fusedLocationClient.lastLocation.addOnCompleteListener { task ->
+            if(task.isSuccessful) {
+                val loc = task.result!!
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.fromLatLngZoom(LatLng(loc.latitude, loc.longitude), map.maxZoomLevel/1.5f)
+                ))
+//                   selectedLocation = map.addMarker(MarkerOptions()
+//                       .position(LatLng(loc.latitude, loc.longitude))
+//                       .title(getString(R.string.your_location))
+//                       .snippet("${loc.latitude}, ${loc.longitude}"))
+//
+//                   selectedLocation.showInfoWindow()
+            }
+        }
+    }
+
+    // Set the selected marker to the point of interest currently stored in view model
+    private fun setInitialMarker(): Boolean {
+        val prevSelectedLoc = _viewModel.selectedPOI.value
+        if(prevSelectedLoc != null && prevSelectedLoc.name.isNotEmpty()) {
+            selectedLocation = map.addMarker(MarkerOptions()
+                .title(prevSelectedLoc.name)
+                .position(prevSelectedLoc.latLng)
+                .snippet("${prevSelectedLoc.latLng.latitude}, ${prevSelectedLoc.latLng.longitude}"))
+
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(prevSelectedLoc.latLng, map.maxZoomLevel/1.25f)
+            ))
+            return true
+        }
+        
+        return false
+    }
+
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap!!
@@ -182,24 +208,37 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnP
     }
 
     override fun onPoiClick(pointOfInterest: PointOfInterest?) {
-        selectedLocation.remove()
-        selectedLocation = map.addMarker(MarkerOptions()
-            .position(pointOfInterest!!.latLng)
-            .title(pointOfInterest.name)
-            .snippet("${pointOfInterest.latLng.latitude}, ${pointOfInterest.latLng.longitude}"))
+        if(selectedLocation != null)
+            selectedLocation!!.remove()
 
-        selectedLocation.showInfoWindow()
+        selectedLocation = map.addMarker(
+            MarkerOptions()
+                .position(pointOfInterest!!.latLng)
+                .title(pointOfInterest.name)
+                .snippet("${pointOfInterest.latLng.latitude}, ${pointOfInterest.latLng.longitude}")
+        )
+
+        selectedLocation!!.showInfoWindow()
+
     }
 
-    override fun onMapLongClick(latLng: LatLng?) {
-        selectedLocation.remove()
-        selectedLocation = map.addMarker(MarkerOptions()
-            .position(latLng!!)
-            .title(getString(R.string.dropped_pin))
-            .snippet("${latLng.latitude}, ${latLng.longitude}"))
-
-        selectedLocation.showInfoWindow()
+    // Used to cancel location selection
+    override fun onMapClick(p0: LatLng?) {
+        if(selectedLocation != null && selectedLocation!!.position != p0) {
+            map.clear()
+            selectedLocation = null
+        }
     }
+
+//    override fun onMapLongClick(latLng: LatLng?) {
+//        selectedLocation.remove()
+//        selectedLocation = map.addMarker(MarkerOptions()
+//            .position(latLng!!)
+//            .title(getString(R.string.dropped_pin))
+//            .snippet("${latLng.latitude}, ${latLng.longitude}"))
+//
+//        selectedLocation.showInfoWindow()
+//    }
 
 
 }
