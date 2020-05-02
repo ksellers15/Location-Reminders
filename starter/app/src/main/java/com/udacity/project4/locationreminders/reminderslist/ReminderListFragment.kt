@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.reminderslist
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.auth.FirebaseAuth
@@ -10,6 +11,7 @@ import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
+import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
@@ -65,6 +67,7 @@ class ReminderListFragment : BaseFragment() {
 
     private fun setupRecyclerView() {
         val adapter = RemindersListAdapter {
+            selectedReminder -> openReminderDetails(selectedReminder)
         }
 
 //        setup the recycler view using the extension function
@@ -96,5 +99,11 @@ class ReminderListFragment : BaseFragment() {
 
         startActivity(homeIntent)
     }
+
+    private fun openReminderDetails(reminder: ReminderDataItem) {
+        var intent = ReminderDescriptionActivity.newIntent(requireContext(), reminder)
+        startActivity(intent)
+    }
+
 
 }

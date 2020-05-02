@@ -84,7 +84,7 @@ class SaveReminderFragment : BaseFragment() {
     private fun buildGeoFence(reminder: ReminderDataItem): Geofence {
         return Geofence.Builder()
             .setRequestId(reminder.id)
-            .setCircularRegion(reminder.latitude!!, reminder.longitude!!, resources.getDimension(R.dimen.default_geo_radius))
+            .setCircularRegion(reminder.latitude!!, reminder.longitude!!, 3.0f)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .build()

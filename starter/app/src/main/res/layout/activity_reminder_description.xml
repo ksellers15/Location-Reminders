@@ -13,21 +13,47 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:orientation="vertical"
         tools:context=".locationreminders.ReminderDescriptionActivity">
-        <!--TODO: add the design of the reminder details-->
+        <!--COMPLETED: add the design of the reminder details-->
 
         <TextView
+            android:id="@+id/reminder_desc_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Reminder Details"
-            android:textSize="@dimen/text_size_large"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="@dimen/margin_normal"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:text="@{reminderDataItem.title}"
+            tools:text="@string/reminder_title" />
+        <TextView
+            android:id="@+id/reminder_desc_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/padding_normal"
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingRight="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_normal"
+            android:paddingBottom="@dimen/padding_normal"
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:text="@{reminderDataItem.description}"
+            tools:text="@string/reminder_desc"/>
+
+        <fragment
+            android:id="@+id/reminder_desc_map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:name="com.google.android.gms.maps.SupportMapFragment"/>
+
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:text="Reminder Details"-->
+<!--            android:textSize="@dimen/text_size_large"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
 
     </LinearLayout>
 </layout>
